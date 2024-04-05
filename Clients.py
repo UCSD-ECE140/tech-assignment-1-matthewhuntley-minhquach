@@ -129,7 +129,6 @@ client3.on_subscribe = on_subscribe
 client3.on_message = on_message
 client3.on_publish = on_publish
 
-print("Done")
 # subscribe to all topics of encyclopedia by using the wildcard "#"
 client3.subscribe("encyclopedia/#", qos=1)
 
@@ -137,7 +136,6 @@ client3.subscribe("encyclopedia/#", qos=1)
 # create thread to run 2 loops at the same time
 subscriber_loop_thread = threading.Thread(target=client3.loop_forever)
 subscriber_loop_thread.start()
-print("loop")
 
 
 # Start publishing random data every 3 seconds
