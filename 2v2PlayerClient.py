@@ -5,6 +5,56 @@ from dotenv import load_dotenv
 import paho.mqtt.client as paho
 from paho import mqtt
 import time
+from collections import defaultdict
+ 
+ 
+# This class represents a directed graph
+# using adjacency list representation
+class Graph:
+ 
+    # Constructor
+    def __init__(self):
+ 
+        # Default dictionary to store graph
+        self.graph = defaultdict(list)
+ 
+    # Function to add an edge to graph
+    def addEdge(self, u, v):
+        self.graph[u].append(v)
+    
+    def removeEdge(self, u, v):
+        if v in self.graph[u]:
+            self.graph[u].remove(v)
+
+    # Function to print a BFS of graph
+    def BFS(self, s):
+ 
+        # Mark all the vertices as not visited
+        visited = [False] * (max(self.graph) + 1)
+ 
+        # Create a queue for BFS
+        queue = []
+ 
+        # Mark the source node as
+        # visited and enqueue it
+        queue.append(s)
+        visited[s] = True
+ 
+        while queue:
+ 
+            # Dequeue a vertex from
+            # queue and print it
+            s = queue.pop(0)
+            print(s, end=" ")
+ 
+            # Get all adjacent vertices of the
+            # dequeued vertex s.
+            # If an adjacent has not been visited,
+            # then mark it visited and enqueue it
+            for i in self.graph[s]:
+                if visited[i] == False:
+                    queue.append(i)
+                    visited[i] = True
 
 
 # setting callbacks for different events to see if it works, print the message etc.
@@ -53,6 +103,49 @@ def on_message(client, userdata, msg):
         :param userdata: userdata is set when initiating the client, here it is userdata=None
         :param msg: the message with topic and payload
     """
+    data = json.loads(str(msg.payload))
+
+    # Extract required lists
+    current_position = data.get("currentPosition", [])
+    teammate_positions = data.get("teammatePositions", [])
+    enemy_positions = data.get("enemyPositions", [])
+    coin1 = data.get("coin1", [])
+    coin2 = data.get("coin2", [])
+    coin3 = data.get("coin3", [])
+    
+    g = Graph()
+
+   # Define the dimensions of the grid
+    rows = 5
+    cols = 5
+
+    # Add edges for each vertex in the grid
+    for i in range(rows):
+        for j in range(cols):
+            current_vertex = (i, j)
+            # Add edges to neighboring vertices
+            if i > 0:
+                g.addEdge(current_vertex, (i-1, j))  # Up
+            if i < rows - 1:
+                g.addEdge(current_vertex, (i+1, j))  # Down
+            if j > 0:
+                g.addEdge(current_vertex, (i, j-1))  # Left
+            if j < cols - 1:
+                g.addEdge(current_vertex, (i, j+1))  # Right
+    
+    #temp = currentPosition - it 
+    #position = [2,2] - temp
+
+    g.addEdge(0, 1)
+    g.addEdge(0, 2)
+    g.addEdge(1, 2)
+    g.addEdge(2, 0)
+    g.addEdge(2, 3)
+    g.addEdge(3, 3)
+ 
+    print("Following is Breadth First Traversal"
+        " (starting from vertex 2)")
+    g.BFS(2)
 
     print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
@@ -81,9 +174,9 @@ if __name__ == '__main__':
 
     lobby_name = "TestLobby"
     player_1 = "Player1"
-    player_2 = "Player2"
-    player_3 = "Player3"
-    player_4 = "Player4"
+    # player_2 = "Player2"
+    # player_3 = "Player3"
+    # player_4 = "Player4"
 
     client.subscribe(f"games/{lobby_name}/lobby")
     client.subscribe(f'games/{lobby_name}/+/game_state')
@@ -93,26 +186,29 @@ if __name__ == '__main__':
                                             'team_name':'ATeam',
                                             'player_name' : player_1}))
     
-    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                            'team_name':'ATeam',
-                                            'player_name' : player_2}))
+    # client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+    #                                         'team_name':'ATeam',
+    #                                         'player_name' : player_2}))
     
-    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                        'team_name':'BTeam',
-                                        'player_name' : player_3}))
+    # client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+    #                                     'team_name':'BTeam',
+    #                                     'player_name' : player_3}))
     
-    client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                        'team_name':'BTeam',
-                                        'player_name' : player_4}))
+    # client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+    #                                     'team_name':'BTeam',
+    #                                     'player_name' : player_4}))
 
     time.sleep(1) # Wait a second to resolve game start
     client.publish(f"games/{lobby_name}/start", "START")
     client.publish(f"games/{lobby_name}/{player_1}/move", "UP")
-    client.publish(f"games/{lobby_name}/{player_2}/move", "DOWN")
-    client.publish(f"games/{lobby_name}/{player_3}/move", "DOWN")
-    client.publish(f"games/{lobby_name}/{player_4}/move", "DOWN")
+    # client.publish(f"games/{lobby_name}/{player_2}/move", "DOWN")
+    # client.publish(f"games/{lobby_name}/{player_3}/move", "DOWN")
+    # client.publish(f"games/{lobby_name}/{player_4}/move", "DOWN")
     time.sleep(1)
     client.publish(f"games/{lobby_name}/start", "STOP")
+
+
+
 
 
     client.loop_forever()
