@@ -101,9 +101,12 @@ def on_message(client, userdata, msg):
         :param msg: the message with topic and payload
     """
     if "game_state" in msg.topic:
-        time.sleep(5)
+        time.sleep(1)
+        print("Recieving message...")
         suggest_next_move(msg.payload)
-    #print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+        
+    if "scores" in msg.topic:
+        print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
 def suggest_next_move(payload):
     json_string = payload.decode('utf-8')
@@ -167,7 +170,7 @@ def suggest_next_move(payload):
             next_move = path[0]
         else: 
             print("No more unvisited tiles possible")
-            exit()
+            # client.publish(f"games/{lobby_name}/start", "STOP")
 
     # determining what direction to move based on the path retrieved from BFS
     if next_move[0] == current_postion[0]: 
@@ -205,6 +208,7 @@ if __name__ == '__main__':
     # set username and password
     client.username_pw_set(username, password)
     # connect to HiveMQ Cloud on port 8883 (default for MQTT)
+    time.sleep(5) # wait for GameClient to start first
     client.connect(broker_address, broker_port)
 
     # setting callbacks, use separate functions like above for better visibility
@@ -220,17 +224,18 @@ if __name__ == '__main__':
     client.subscribe(f'games/{lobby_name}/scores')
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                            'team_name':'Team1',
+                                            'team_name':'Team2',
                                             'player_name' : player}))
+    time.sleep(1)
     
 
     # create thread to run 2 loops at the same time
     subscriber_loop_thread = threading.Thread(target=client.loop_forever)
     subscriber_loop_thread.start()
 
-
-    start = input("Enter START to begin: ")
-    client.publish(f"games/{lobby_name}/start", start)
+    time.sleep(1)
+    print("Player2...")
+    client.publish(f"games/{lobby_name}/start", "START")
 
 
 

@@ -103,7 +103,10 @@ if __name__ == '__main__':
     while True: 
         time.sleep(1)
         move = input("Enter your move (UP/DOWN/LEFT/RIGHT): ")
-        client.publish(f"games/{lobby_name}/{player}/move", move)
+        if (move == "STOP"):
+            client.publish(f"games/{lobby_name}/start", "STOP")
+        else:
+            client.publish(f"games/{lobby_name}/{player}/move", move)
 
 
 

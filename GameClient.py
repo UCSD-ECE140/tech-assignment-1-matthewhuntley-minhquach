@@ -1,6 +1,8 @@
 import os
 import json
 import copy
+import threading
+import time
 from collections import OrderedDict
 
 import paho.mqtt.client as paho
@@ -62,13 +64,18 @@ def on_message(client, userdata, msg):
 
     # Validate it is input we can deal with
     if topic_list[-1] in dispatch.keys(): 
-        dispatch[topic_list[-1]](client, topic_list, msg.payload)
+        # dispatch[topic_list[-1]](client, topic_list, msg.payload)
+        print("Dispatching message to handler: " + topic_list[-1])
+        message_handler_thread = threading.Thread(target=dispatch[topic_list[-1]], args=(client, topic_list, msg.payload))
+        message_handler_thread.start()
+        print("Message dispatched to handler: " + topic_list[-1])
 
 
 
 # Dispatched function, adds player to a lobby & team
 def add_player(client, topic_list, msg_payload):
     # Parse and Validate Input Data
+    print("Adding player...")
     try:
         player = NewPlayer(**json.loads(msg_payload))
     except:
@@ -82,6 +89,7 @@ def add_player(client, topic_list, msg_payload):
 
     if client.team_dict[player.lobby_name]['started']:
         publish_error_to_lobby(client, player.lobby_name, "Game has already started, please make a new lobby")
+        return
 
     add_team(client, player)
 
@@ -105,6 +113,7 @@ move_to_Moveset = {
 
 # Dispatched Function: handles player movement commands
 def player_move(client, topic_list, msg_payload):
+    print("Handling player move...")
     lobby_name = topic_list[1]
     player_name = topic_list[2]
     if lobby_name in client.team_dict.keys():
@@ -143,6 +152,7 @@ def player_move(client, topic_list, msg_payload):
 
 # Dispatched function: Instantiates Game object
 def start_game(client, topic_list, msg_payload):
+    print("Starting game...")
     lobby_name = topic_list[1]
     if isinstance(msg_payload, bytes) and msg_payload.decode() == "START":
 
@@ -158,6 +168,9 @@ def start_game(client, topic_list, msg_payload):
 
                 for player in game.all_players.keys():
                     client.publish(f'games/{lobby_name}/{player}/game_state', json.dumps(game.getGameData(player)))
+                    print("Sending message to " + str(player))
+                    time.sleep(1)
+
 
 
                 print(game.map)
@@ -169,10 +182,12 @@ def start_game(client, topic_list, msg_payload):
 
 
 def publish_error_to_lobby(client, lobby_name, error):
+    print("Publishing error to lobby:", error)
     publish_to_lobby(client, lobby_name, f"Error: {error}")
 
 
 def publish_to_lobby(client, lobby_name, msg):
+    print("Publishing message to lobby:", msg)
     client.publish(f"games/{lobby_name}/lobby", msg)
 
 
