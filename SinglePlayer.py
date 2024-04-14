@@ -56,6 +56,9 @@ def on_message(client, userdata, msg):
     """
 
     print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+    if (msg.topic == "games/FirstLobby/Player/game_state"):
+        move = input("Enter your move (UP/DOWN/LEFT/RIGHT): ")
+        client.publish(f"games/{lobby_name}/{player}/move", move)
 
 
 if __name__ == '__main__':
@@ -100,13 +103,13 @@ if __name__ == '__main__':
     time.sleep(1) # Wait a second to resolve game start
     client.publish(f"games/{lobby_name}/start", "START")
     
-    while True: 
-        time.sleep(1)
-        move = input("Enter your move (UP/DOWN/LEFT/RIGHT): ")
-        if (move == "STOP"):
-            client.publish(f"games/{lobby_name}/start", "STOP")
-        else:
-            client.publish(f"games/{lobby_name}/{player}/move", move)
+    # while True: 
+    #     time.sleep(1)
+    #     move = input("Enter your move (UP/DOWN/LEFT/RIGHT): ")
+    #     if (move == "STOP"):
+    #         client.publish(f"games/{lobby_name}/start", "STOP")
+    #     else:
+    #         client.publish(f"games/{lobby_name}/{player}/move", move)
 
 
 
