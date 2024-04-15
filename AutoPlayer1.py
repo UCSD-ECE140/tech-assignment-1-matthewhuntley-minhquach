@@ -104,6 +104,7 @@ def on_message(client, userdata, msg):
         time.sleep(1)
         print("Recieving message...")
         suggest_next_move(msg.payload)
+        print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
     
     if "scores" in msg.topic:
         print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
@@ -115,7 +116,8 @@ def suggest_next_move(payload):
     data = json.loads(json_string)
 
     current_postion = data['currentPosition']
-
+    teamates = data['teammatePositions']
+    enemys = data['enemyPositions']
     walls = data['walls']
 
     coin_1 = data['coin1']
@@ -136,6 +138,12 @@ def suggest_next_move(payload):
     # bottom right must fall within [9, 9] corner of map
     bottom_right = [min(current_postion[0] + 2, 9), min(current_postion[1] + 2, 9)]
 
+    # Create a set of coordinates for other players
+    other_players_coords = []
+    for player_list in [enemys, teamates]:
+        for player_pos in player_list:
+            other_players_coords.append(player_pos)
+
     #creating list with all coins in visiblity
     coins_in_visibility = []
     for coin_list in [coin_1, coin_2, coin_3]:
@@ -153,9 +161,17 @@ def suggest_next_move(payload):
             elif [y,x] in coins_in_visibility:
                 # C represents a coin of any value
                 grid[y][x] = "C";
+            elif [y,x] in other_players_coords:
+                # D represents other player position
+                grid[y][x] = "W" # see it as wall until it is outside of visibiity
             else: 
                 # X represents a tile has been visited
                 grid[y][x] = "X";
+
+    for y in range(max(0, top_left[0] - 1), min(10, bottom_left[0] + 2)):
+        for x in range(max(0, top_left[1] - 1), min(10, top_right[1] + 2)):
+            if grid[y][x] in other_players_coords:
+                grid[y][x] = "X"
 
     for row in grid:
         print(row)
@@ -190,7 +206,10 @@ def suggest_next_move(payload):
  
         #client.publish(f"games/{lobby_name}/{player}/move", random.choice(["LEFT", "RIGHT", "UP", "DOWN"]))
 
-        
+    for y in range(len(grid)):
+        for x in range(len(grid[0])):
+            if (y, x) in other_players_coords:
+                grid[y][x] = "X"   
 
             
 if __name__ == '__main__':
@@ -220,7 +239,7 @@ if __name__ == '__main__':
     player = "Player1"
 
     client.subscribe(f"games/{lobby_name}/lobby", qos=2)
-    client.subscribe(f'games/{lobby_name}/+/game_state', qos=2)
+    client.subscribe(f'games/{lobby_name}/{player}/game_state', qos=2)
     client.subscribe(f'games/{lobby_name}/scores', qos=2)
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
