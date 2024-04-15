@@ -62,7 +62,7 @@ def on_message(client, userdata, msg):
 
 
 if __name__ == '__main__':
-    load_dotenv(dotenv_path='./credentials_1.env')
+    load_dotenv(dotenv_path='./credentials_2.env')
     
     broker_address = os.environ.get('BROKER_ADDRESS')
     broker_port = int(os.environ.get('BROKER_PORT'))
@@ -84,14 +84,14 @@ if __name__ == '__main__':
     client.on_publish = on_publish # Can comment out to not print when publishing to topics
 
     lobby_name = "FirstLobby"
-    player = "Player1"
+    player = "Player2"
 
     client.subscribe(f"games/{lobby_name}/lobby")
     client.subscribe(f'games/{lobby_name}/+/game_state')
     client.subscribe(f'games/{lobby_name}/scores')
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                            'team_name':'TeamA',
+                                            'team_name':'TeamB',
                                             'player_name' : player}))
     
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
 
     time.sleep(1) # Wait a second to resolve game start
-    # client.publish(f"games/{lobby_name}/start", "START")
+    client.publish(f"games/{lobby_name}/start", "START")
     
     # while True: 
     #     time.sleep(1)

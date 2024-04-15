@@ -194,7 +194,7 @@ def suggest_next_move(payload):
 
             
 if __name__ == '__main__':
-    load_dotenv(dotenv_path='./credentials.env')
+    load_dotenv(dotenv_path='./credentials_2.env')
     
     broker_address = os.environ.get('BROKER_ADDRESS')
     broker_port = int(os.environ.get('BROKER_PORT'))
@@ -219,9 +219,9 @@ if __name__ == '__main__':
     lobby_name = "FirstLobby"
     player = "Player2"
 
-    client.subscribe(f"games/{lobby_name}/lobby")
-    client.subscribe(f'games/{lobby_name}/+/game_state')
-    client.subscribe(f'games/{lobby_name}/scores')
+    client.subscribe(f"games/{lobby_name}/lobby", qos=2)
+    client.subscribe(f'games/{lobby_name}/+/game_state', qos=2)
+    client.subscribe(f'games/{lobby_name}/scores', qos=2)
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
                                             'team_name':'Team2',
@@ -235,7 +235,8 @@ if __name__ == '__main__':
 
     time.sleep(1)
     print("Player2...")
-    client.publish(f"games/{lobby_name}/start", "START")
+    client.publish(f"games/{lobby_name}/start", "START", qos=2)
+    time.sleep(1)
 
 
 

@@ -1,6 +1,5 @@
 import os
 import json
-import threading
 from dotenv import load_dotenv
 
 import paho.mqtt.client as paho
@@ -56,20 +55,17 @@ def on_message(client, userdata, msg):
     """
 
     print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
-    if "game_state" in msg.topic:
-        move = input("Enter your move (UP/DOWN/LEFT/RIGHT): ")
-        client.publish(f"games/{lobby_name}/{player}/move", move, qos=2)
 
 
 if __name__ == '__main__':
-    load_dotenv(dotenv_path='./credentials_1.env')
+    load_dotenv(dotenv_path='./credentials.env')
     
     broker_address = os.environ.get('BROKER_ADDRESS')
     broker_port = int(os.environ.get('BROKER_PORT'))
     username = os.environ.get('USER_NAME')
     password = os.environ.get('PASSWORD')
 
-    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player", userdata=None, protocol=paho.MQTTv5)
+    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player1", userdata=None, protocol=paho.MQTTv5)
     
     # enable TLS for secure connection
     client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
@@ -83,37 +79,34 @@ if __name__ == '__main__':
     client.on_message = on_message
     client.on_publish = on_publish # Can comment out to not print when publishing to topics
 
-    lobby_name = "FirstLobby"
-    player = "Player1"
+    lobby_name = "TestLobby"
+    player_1 = "Player1"
+    player_2 = "Player2"
+    player_3 = "Player3"
 
-    client.subscribe(f"games/{lobby_name}/lobby")
-    client.subscribe(f'games/{lobby_name}/+/game_state')
-    client.subscribe(f'games/{lobby_name}/scores')
+    client.subscribe(f"games/{lobby_name}/lobby", qos=2)
+    client.subscribe(f'games/{lobby_name}/+/game_state', qos=2)
+    client.subscribe(f'games/{lobby_name}/scores', qos=2)
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                            'team_name':'TeamA',
-                                            'player_name' : player}))
+                                            'team_name':'ATeam',
+                                            'player_name' : player_1}))
     
-
-    # create thread to run 2 loops at the same time
-    subscriber_loop_thread = threading.Thread(target=client.loop_forever)
-    subscriber_loop_thread.start()
-
+    # client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+    #                                         'team_name':'BTeam',
+    #                                         'player_name' : player_2}))
+    
+    # client.publish("new_game", json.dumps({'lobby_name':lobby_name,
+    #                                     'team_name':'BTeam',
+    #                                     'player_name' : player_3}))
 
     time.sleep(1) # Wait a second to resolve game start
     # client.publish(f"games/{lobby_name}/start", "START")
-    
-    # while True: 
-    #     time.sleep(1)
-    #     move = input("Enter your move (UP/DOWN/LEFT/RIGHT): ")
-    #     if (move == "STOP"):
-    #         client.publish(f"games/{lobby_name}/start", "STOP")
-    #     else:
-    #         client.publish(f"games/{lobby_name}/{player}/move", move)
-
-
-
+    client.publish(f"games/{lobby_name}/{player_1}/move", "UP")
+    # client.publish(f"games/{lobby_name}/{player_2}/move", "DOWN")
+    # client.publish(f"games/{lobby_name}/{player_3}/move", "DOWN")
+    # time.sleep(1)
     # client.publish(f"games/{lobby_name}/start", "STOP")
 
 
-    # client.loop_forever()
+    client.loop_forever()

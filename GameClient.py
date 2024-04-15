@@ -167,7 +167,7 @@ def start_game(client, topic_list, msg_payload):
                 client.team_dict[lobby_name]["started"] = True
 
                 for player in game.all_players.keys():
-                    client.publish(f'games/{lobby_name}/{player}/game_state', json.dumps(game.getGameData(player)))
+                    client.publish(f'games/{lobby_name}/{player}/game_state', json.dumps(game.getGameData(player)), qos=2)
                     print("Sending message to " + str(player))
                     time.sleep(1)
 
@@ -225,8 +225,8 @@ if __name__ == '__main__':
     client.game_dict = {} # Keeps track of the games {{'lobby_name' : Game Object}
     client.move_dict = {} # Keeps track of the games {{'lobby_name' : Game Object}
 
-    client.subscribe("new_game")
-    client.subscribe('games/+/start')
-    client.subscribe('games/+/+/move')
+    client.subscribe("new_game", qos=2)
+    client.subscribe('games/+/start', qos=2)
+    client.subscribe('games/+/+/move', qos=2)
 
     client.loop_forever()
