@@ -142,6 +142,9 @@ def player_move(client, topic_list, msg_payload):
                     client.team_dict.pop(lobby_name)
                     client.move_dict.pop(lobby_name)
                     client.game_dict.pop(lobby_name)
+                    for player in game.all_players.keys():
+                        client.publish(f'games/{lobby_name}/{player}/game_state', "GameOver", qos=2)
+                        print("Sending gameover message to " + str(player))
 
         except Exception as e:
             raise e

@@ -83,7 +83,7 @@ def on_message(client, userdata, msg):
 # Function to publish random data to a topic
 def publish_random_data(client, topic):
     data = random.randint(1, 100)
-    client.publish(topic, payload=data, qos=1)
+    client.publish(topic, payload=data, qos=2)
     print(f"Published to {topic}: {data}")
 
 
@@ -92,56 +92,34 @@ def publish_random_data(client, topic):
 # using MQTT version 5 here, for 3.1.1: MQTTv311, 3.1: MQTTv31
 # userdata is user defined data of any type, updated by user_data_set()
 # client_id is the given name of the client
-client1 = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="", userdata=None, protocol=paho.MQTTv5)
-client1.on_connect = on_connect
+client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="publisher1", userdata=None, protocol=paho.MQTTv5)
+client.on_subscribe = on_subscribe # Can comment out to not print when subscribing to new topics
+client.on_message = on_message
+client.on_publish = on_publish # Can comment out to not print when publishing to topics
 
-client2 = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="", userdata=None, protocol=paho.MQTTv5)
-client2.on_connect = on_connect
 
-client3 = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="", userdata=None, protocol=paho.MQTTv5)
-client3.on_connect = on_connect
 
 
 # enable TLS for secure connection
-client1.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-client2.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-client3.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+
 # set username and password
-client1.username_pw_set("Publisher1", "Techassignment1")
-client2.username_pw_set("Publisher2", "Techassignment1")
-client3.username_pw_set("subscriber1", "Techassignment1")
+client.username_pw_set("Publisher1", "Techassignment1")
+
 # connect to HiveMQ Cloud on port 8883 (default for MQTT)
-client1.connect("4b067d263a0d430aba56e5c1480d8e8b.s1.eu.hivemq.cloud", 8883)
-client2.connect("4b067d263a0d430aba56e5c1480d8e8b.s1.eu.hivemq.cloud", 8883)
-client3.connect("4b067d263a0d430aba56e5c1480d8e8b.s1.eu.hivemq.cloud", 8883)
+client.connect("4b067d263a0d430aba56e5c1480d8e8b.s1.eu.hivemq.cloud", 8883)
 
 
 # setting callbacks, use separate functions like above for better visibility
-client1.on_subscribe = on_subscribe
-client1.on_message = on_message
-client1.on_publish = on_publish
+client.on_subscribe = on_subscribe
+client.on_message = on_message
+client.on_publish = on_publish
 
-client2.on_subscribe = on_subscribe
-client2.on_message = on_message
-client2.on_publish = on_publish
-
-client3.on_subscribe = on_subscribe
-client3.on_message = on_message
-client3.on_publish = on_publish
-
-# subscribe to all topics of encyclopedia by using the wildcard "#"
-client3.subscribe("encyclopedia/#", qos=1)
-
-
-# create thread to run 2 loops at the same time
-subscriber_loop_thread = threading.Thread(target=client3.loop_forever)
-subscriber_loop_thread.start()
 
 
 # Start publishing random data every 3 seconds
 while True: 
-    publish_random_data(client1, "encyclopedia/temperature")
-    publish_random_data(client2, "encyclopedia/temperature")
+    publish_random_data(client, "encyclopedia/temperature")
     time.sleep(3)
 
 

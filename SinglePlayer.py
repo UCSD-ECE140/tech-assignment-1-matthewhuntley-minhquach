@@ -57,6 +57,11 @@ def on_message(client, userdata, msg):
 
     print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
     if "game_state" in msg.topic:
+        if (str(msg.payload) == "GameOver"):
+            client.unsubscribe(f"games/{lobby_name}/lobby")
+            client.unsubscribe(f'games/{lobby_name}/+/game_state')
+            client.unsubscribe(f'games/{lobby_name}/scores')
+            exit()
         move = input("Enter your move (UP/DOWN/LEFT/RIGHT): ")
         client.publish(f"games/{lobby_name}/{player}/move", move, qos=2)
 
