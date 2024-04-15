@@ -104,7 +104,7 @@ def on_message(client, userdata, msg):
         time.sleep(1)
         print("Recieving message...")
         suggest_next_move(msg.payload)
-    
+        
     if "scores" in msg.topic:
         print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
@@ -194,21 +194,21 @@ def suggest_next_move(payload):
 
             
 if __name__ == '__main__':
-    load_dotenv(dotenv_path='./credentials_1.env')
+    load_dotenv(dotenv_path='./credentials_4.env')
     
     broker_address = os.environ.get('BROKER_ADDRESS')
     broker_port = int(os.environ.get('BROKER_PORT'))
     username = os.environ.get('USER_NAME')
     password = os.environ.get('PASSWORD')
 
-    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player1", userdata=None, protocol=paho.MQTTv5)
+    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player4", userdata=None, protocol=paho.MQTTv5)
     
     # enable TLS for secure connection
     client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
     # set username and password
     client.username_pw_set(username, password)
     # connect to HiveMQ Cloud on port 8883 (default for MQTT)
-    time.sleep(2) # wait for GameClient to start first
+    time.sleep(5) # wait for GameClient to start first
     client.connect(broker_address, broker_port)
 
     # setting callbacks, use separate functions like above for better visibility
@@ -217,19 +217,23 @@ if __name__ == '__main__':
     client.on_publish = on_publish # Can comment out to not print when publishing to topics
 
     lobby_name = "FirstLobby"
-    player = "Player1"
+    player = "Player4"
 
     client.subscribe(f"games/{lobby_name}/lobby", qos=2)
     client.subscribe(f'games/{lobby_name}/+/game_state', qos=2)
     client.subscribe(f'games/{lobby_name}/scores', qos=2)
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                            'team_name':'Team1',
+                                            'team_name':'Team2',
                                             'player_name' : player}))
     time.sleep(1)
     
-    print("Player1...")
-    # client.publish(f"games/{lobby_name}/start", "START")
+
+
+    time.sleep(1)
+    print("Player4...")
+    client.publish(f"games/{lobby_name}/start", "START", qos=2)
+   
 
 
 

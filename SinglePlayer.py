@@ -96,12 +96,12 @@ if __name__ == '__main__':
     
 
     # create thread to run 2 loops at the same time
-    subscriber_loop_thread = threading.Thread(target=client.loop_forever)
-    subscriber_loop_thread.start()
+    # subscriber_loop_thread = threading.Thread(target=client.loop_forever)
+    # subscriber_loop_thread.start()
 
 
     time.sleep(1) # Wait a second to resolve game start
-    # client.publish(f"games/{lobby_name}/start", "START")
+    client.publish(f"games/{lobby_name}/start", "START")
     
     # while True: 
     #     time.sleep(1)
@@ -116,4 +116,4 @@ if __name__ == '__main__':
     # client.publish(f"games/{lobby_name}/start", "STOP")
 
 
-    # client.loop_forever()
+    client.loop_forever()

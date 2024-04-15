@@ -201,7 +201,7 @@ if __name__ == '__main__':
     username = os.environ.get('USER_NAME')
     password = os.environ.get('PASSWORD')
 
-    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player", userdata=None, protocol=paho.MQTTv5)
+    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player2", userdata=None, protocol=paho.MQTTv5)
     
     # enable TLS for secure connection
     client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
@@ -224,23 +224,17 @@ if __name__ == '__main__':
     client.subscribe(f'games/{lobby_name}/scores', qos=2)
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                            'team_name':'Team2',
+                                            'team_name':'Team1',
                                             'player_name' : player}))
     time.sleep(1)
     
-
-    # create thread to run 2 loops at the same time
-    subscriber_loop_thread = threading.Thread(target=client.loop_forever)
-    subscriber_loop_thread.start()
-
-    time.sleep(1)
     print("Player2...")
-    client.publish(f"games/{lobby_name}/start", "START", qos=2)
-    time.sleep(1)
+    # client.publish(f"games/{lobby_name}/start", "START", qos=2)
+   
 
 
 
     # client.publish(f"games/{lobby_name}/start", "STOP")
 
 
-    # client.loop_forever()
+    client.loop_forever()
